@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.0/jquery.cookie.min.js"></script>
+</head>
+<body>
+
+<div id="container">Hey</div>
+
+
+</body>
+
+<script src="https://secure.aadcdn.microsoftonline-p.com/lib/<version>/js/msal.js"></script>
+<script src="https://secure.aadcdn.microsoftonline-p.com/lib/<version>/js/msal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js" class="pre"></script>
+<script src="test1.js"></script>
+<script>
+    var msalConfig = {
+        auth: {
+            clientId: '29e0db7d-4652-430e-971a-b5ab36aad172'
+        }
+    };
+
+    var msalInstance = new Msal.UserAgentApplication(msalConfig);
+
+    msalInstance.handleRedirectCallback((error, response) => {
+        console.log(error);
+        console.log(response);
+        // handle redirect response or error
+    });
+    var loginRequest = {
+        scopes: ["user.read", "mail.send"] // optional Array<string>
+    };
+
+    msalInstance.loginPopup(loginRequest)
+        .then(response => {
+            // handle response
+        })
+        .catch(err => {
+            // handle error
+        });
+
+
+
+    // if the user is already logged in you can acquire a token
+    if (msalInstance.getAccount()) {
+        var tokenRequest = {
+            scopes: ["user.read", "mail.send"]
+        };
+        msalInstance.acquireTokenSilent(tokenRequest)
+            .then(response => {
+                // get access token from response
+                // response.accessToken
+            })
+            .catch(err => {
+                // could also check if err instance of InteractionRequiredAuthError if you can import the class.
+                if (err.name === "InteractionRequiredAuthError") {
+                    return msalnstance.acquireTokenPopup(tokenRequest)
+                        .then(response => {
+                            // get access token from response
+                            // response.accessToken
+                        })
+                        .catch(err => {
+                            // handle error
+                        });
+                }
+            });
+    } else {
+        // user is not logged in, you will need to log them in to acquire a token
+    }
+
+    var headers = new Headers();
+    var bearer = "Bearer " + token;
+    headers.append("Authorization", bearer);
+    var options = {
+        method: "GET",
+        headers: headers
+    };
+    var graphEndpoint = "https://graph.microsoft.com/v1.0/me";
+
+    fetch(graphEndpoint, options)
+        .then(resp => {
+            //do something with response
+        });
+</script>
